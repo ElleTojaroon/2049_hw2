@@ -12,15 +12,46 @@ import AVFoundation
 class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     let captureSession = AVCaptureSession()
-    var captureDevice : AVCaptureDevice?
-
+    
     // switch front and back camera
     var isSwitchProcessing = false
     @IBAction func switchCameraButton(sender: UIButton) {
-        print("switch cam pressed")
-        isSwitchProcessing = !isSwitchProcessing
-        reloadCamera()
+        session.beginConfiguration()
+        
+        // print("switch cam pressed")
+        session.removeInput(session.inputs[0] as! AVCaptureInput)
 
+        
+        if currentDevice!.position == AVCaptureDevicePosition.Front {
+            
+            
+            currentDevice = setCamera(AVCaptureDevicePosition.Back)
+            
+            switchCamOutlet.setTitle("Front", forState: .Normal)
+            switchCamOutlet.backgroundColor = UIColor.greenColor()
+            print("front cam")
+        } else {
+            currentDevice = setCamera(AVCaptureDevicePosition.Front)
+            
+            switchCamOutlet.setTitle("Back", forState: .Normal)
+            switchCamOutlet.backgroundColor = UIColor.redColor()
+            print("back cam")
+        }
+        
+        let newVideoInput = try! AVCaptureDeviceInput(device: currentDevice!)
+        assert(session.canAddInput(newVideoInput))
+        session.addInput(newVideoInput)
+        session.commitConfiguration()
+    }
+    
+    func setCamera(currentCamPos: AVCaptureDevicePosition) -> AVCaptureDevice {
+        let devices = AVCaptureDevice.devices()
+        for device in devices {
+            if device.position == currentCamPos {
+                return device as! AVCaptureDevice
+            }
+        }
+        return AVCaptureDevice()
     }
     
     
@@ -56,6 +87,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
     
     var session = AVCaptureSession()
+    var currentDevice: AVCaptureDevice! = nil
     var previewLayer : AVCaptureVideoPreviewLayer!
     var processedLayer : CALayer!
     
@@ -75,25 +107,23 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     override func viewDidLoad() { //WHAT IS NIB???
         super.viewDidLoad()
-        
-        // Test on camera
-        reloadCamera()
-        
-        // Get all devices on my phone
+                
+        // Get all devices on my phone and out them in a list
         let devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo) as! [AVCaptureDevice]
         
-        let device = devices.first!
-        //        let device = devices.filter({ (dev) -> Bool in
-        //            dev.position == .Front
-        //        }).first!
-        
-        // Selecting the front facing camera
+//        let device = devices.first!
+        currentDevice = devices.filter({ (dev) -> Bool in
+            dev.position == .Back
+        }).first!
+
         // let x = devices.filter { (dev) -> Bool in
         //    dev.position == .Front
         // }
         // let device = devices.filter({ $0.position == .Front }).first!
         
-        let input = try! AVCaptureDeviceInput(device: device)
+        
+        // need to create a variable obtaining information from devices: blue box: APCaptureDevice Input
+        let input = try! AVCaptureDeviceInput(device: currentDevice)
         //        do {
         //            input =AVCaptureDeviceInput(device: device)
         //        } catch {
@@ -246,44 +276,6 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             frameNo += 1
         }
     }
-    
-    // switch front and back camera
-    func reloadCamera() {
-        let devices = AVCaptureDevice.devices()
-        
-        if isSwitchProcessing {
-            
-            
-            
-            for device in devices {
-                if (device.hasMediaType(AVMediaTypeVideo)) {
-                    if (device.position == AVCaptureDevicePosition.Front) {
-                        captureDevice = device as? AVCaptureDevice
-                        print("captureDevice = \(captureDevice)")
-                        
-                    }
-                }
-            }
-            
-            switchCamOutlet.setTitle("Front", forState: .Normal)
-            switchCamOutlet.backgroundColor = UIColor.greenColor()
-        } else {
-            
-            for device in devices {
-                if (device.hasMediaType(AVMediaTypeVideo)) {
-                    if (device.position == AVCaptureDevicePosition.Back) {
-                        captureDevice = device as? AVCaptureDevice
-                        print("captureDevice = \(captureDevice)")
-                        
-                    }
-                }
-            }
-            
-            switchCamOutlet.setTitle("Back", forState: .Normal)
-            switchCamOutlet.backgroundColor = UIColor.redColor()
-        }
-    }
-    
 
 }
 
