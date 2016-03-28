@@ -112,6 +112,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         let devices = AVCaptureDevice.devicesWithMediaType(AVMediaTypeVideo) as! [AVCaptureDevice]
         
 //        let device = devices.first!
+        
         currentDevice = devices.filter({ (dev) -> Bool in
             dev.position == .Back
         }).first!
@@ -186,9 +187,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         let context = UIGraphicsGetCurrentContext()
         
         // Set line properties color and width
-        CGContextSetLineWidth(context, 30)
-        CGContextSetStrokeColorWithColor(context, UIColor.redColor().CGColor)
-        
+
         // Transform that flips the Y axis
         var T = CGAffineTransformIdentity
         T = CGAffineTransformScale(T, 1, -1)
@@ -196,7 +195,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         for face in faces {
             let faceLoc = CGRectApplyAffineTransform(face.bounds, T)
-            CGContextAddEllipseInRect(context, faceLoc)
+           // CGContextAddEllipseInRect(context, faceLoc)
             
             CGContextDrawImage(context, faceLoc, goatFace.CGImage)
         }
@@ -207,6 +206,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         UIGraphicsEndImageContext()
         
         CVPixelBufferUnlockBaseAddress(imageBuffer, 0)
+        
         
         // Send to main queue to update UI
         dispatch_async(dispatch_get_main_queue()) {
@@ -267,7 +267,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 faceFilterSwitch.setTitle("Filter", forState: .Normal)
                 detectFaces(frameBuffer)
             }
-                // To filter
+            // To filter
             else {
                 faceFilterSwitch.setTitle("Face Detection", forState: .Normal)
                 colorFilter(frameBuffer)
